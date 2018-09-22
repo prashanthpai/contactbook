@@ -1,0 +1,6 @@
+tags
+build/*
+*~
+*.swp
+*.swo
+vendor/*
