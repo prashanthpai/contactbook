@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"flag"
 	"log"
 	"net/http"
@@ -17,6 +18,9 @@ import (
 
 func main() {
 	flag.Parse()
+	if cfg.User == "" || cfg.Password == "" {
+		log.Fatal("both -user and -password must be set")
+	}
 
 	// initialize and open DB
 	db, err := db.New(cfg.DBFile)
@@ -30,8 +34,8 @@ func main() {
 	cb := contact.New(db)
 
 	authconfig := &auth.Config{
-		User:     cfg.User,
-		Password: cfg.Password,
+		User:         cfg.User,
+		PasswordHash: sha256.Sum256([]byte(cfg.Password)),
 	}
 
 	// start HTTP server

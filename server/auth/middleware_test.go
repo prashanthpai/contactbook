@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,14 +20,14 @@ func TestBasicAuth(t *testing.T) {
 	})
 
 	validCfg := &Config{
-		User:     "rightuser",
-		Password: "rightpassword",
+		User:         "rightuser",
+		PasswordHash: sha256.Sum256([]byte("rightpassword")),
 	}
 
 	basicAuthPass := BasicAuth(validCfg, passHandler)
 
 	req := httptest.NewRequest("GET", "http://localhost", nil)
-	req.SetBasicAuth(validCfg.User, validCfg.Password)
+	req.SetBasicAuth(validCfg.User, "rightpassword")
 	w := httptest.NewRecorder()
 	basicAuthPass.ServeHTTP(w, req)
 	assert.Equal(w.Code, http.StatusOK)
@@ -37,13 +38,16 @@ func TestBasicAuth(t *testing.T) {
 		t.Fatal("Auth middleware failed to block unauthorized request")
 	})
 
-	inputs := []*Config{
-		&Config{"", ""},
-		&Config{"", "rightpassword"},
-		&Config{"rightuser", ""},
-		&Config{"rightuser", "wrongpassword"},
-		&Config{"wronguser", "rightpassword"},
-		&Config{"wronguser", "wrongpassword"},
+	inputs := []struct {
+		User     string
+		Password string
+	}{
+		{"", ""},
+		{"", "rightpassword"},
+		{"rightuser", ""},
+		{"rightuser", "wrongpassword"},
+		{"wronguser", "rightpassword"},
+		{"wronguser", "wrongpassword"},
 	}
 
 	basicAuthFail := BasicAuth(validCfg, failHandler)

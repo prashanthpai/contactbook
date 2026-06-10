@@ -4,8 +4,8 @@ import "flag"
 
 const (
 	defaultRestAddr = ":8080"
-	defaultUser     = "ppai"
-	defaultPassword = "livpo"
+	defaultUser     = ""
+	defaultPassword = ""
 	defaultDBFile   = "contactbook.db"
 )
 

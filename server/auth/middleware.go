@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"net/http"
 )
 
@@ -11,8 +13,8 @@ const (
 )
 
 type Config struct {
-	User     string
-	Password string
+	User         string
+	PasswordHash [sha256.Size]byte
 }
 
 func BasicAuth(config *Config, h http.Handler) http.Handler {
@@ -25,7 +27,9 @@ func BasicAuth(config *Config, h http.Handler) http.Handler {
 			return
 		}
 
-		if user != config.User || password != config.Password {
+		passwordHash := sha256.Sum256([]byte(password))
+		if subtle.ConstantTimeCompare([]byte(user), []byte(config.User)) != 1 ||
+			subtle.ConstantTimeCompare(passwordHash[:], config.PasswordHash[:]) != 1 {
 			w.Header().Set(authHeaderStr, realmStr)
 			http.Error(w, bodyStr, http.StatusUnauthorized)
 			return
