@@ -18,6 +18,10 @@ import (
 func main() {
 	flag.Parse()
 
+	if cfg.User == "" || cfg.Password == "" {
+		log.Fatal("HTTP auth credentials are required: set -user/-password flags or CONTACTBOOK_USER/CONTACTBOOK_PASSWORD env vars")
+	}
+
 	// initialize and open DB
 	db, err := db.New(cfg.DBFile)
 	if err != nil {
